@@ -9,12 +9,15 @@ import mapConsumers from './mapConsumers';
 
 import program from 'commander';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 program
     .version(require("../package.json").version)
     .option('-f, --format <value>', 'Export format [screen, json, yaml] (default: yaml)', /^(screen|json|yaml|yml)$/, 'yaml')
     .option('-m, --map-consumers <value>', 'Specify consumer attribute to map consumer_id to when dumping. Can be either username or custom_id. (default: no mapping)', /^(username|custom_id)$/, false)
     .option('--host <value>', 'Kong admin host (default: localhost:8001)', 'localhost:8001')
     .option('--https', 'Use https for admin API requests')
+    .option('--ssl-verify', 'Validate ssl cert')
     .option('--ignore-consumers', 'Ignore consumers in kong')
     .option('--header [value]', 'Custom headers to be added to all requests', (nextHeader, headers) => { headers.push(nextHeader); return headers }, [])
     .option('--credential-schema <value>', 'Add custom auth plugin in <name>:<key> format. Ex: custom_jwt:key. Repeat option for multiple custom plugins', repeatableOptionCallback, [])
@@ -23,6 +26,10 @@ program
 if (!program.host) {
     console.error('--host to the kong admin is required e.g. localhost:8001'.red);
     process.exit(1);
+}
+
+if (program.sslVerify) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
 }
 
 try {

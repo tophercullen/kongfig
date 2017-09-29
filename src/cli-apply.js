@@ -8,11 +8,14 @@ import {repeatableOptionCallback} from './utils';
 import { screenLogger } from './logger';
 import {addSchemasFromOptions, addSchemasFromConfig} from './consumerCredentials';
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 program
     .version(require("../package.json").version)
     .option('--path <value>', 'Path to the configuration file')
     .option('--host <value>', 'Kong admin host (default: localhost:8001)')
     .option('--https', 'Use https for admin API requests')
+    .option('--ssl-verify', 'Validate ssl cert')
     .option('--no-cache', 'Do not cache kong state in memory')
     .option('--ignore-consumers', 'Do not sync consumers')
     .option('--header [value]', 'Custom headers to be added to all requests', (nextHeader, headers) => { headers.push(nextHeader); return headers }, [])
@@ -38,6 +41,7 @@ let host = program.host || config.host || 'localhost:8001';
 let https = program.https || config.https || false;
 let ignoreConsumers = program.ignoreConsumers || !config.consumers || config.consumers.length === 0 || false;
 let cache = program.cache;
+let sslverify = program.sslVerify;
 
 config.headers = config.headers || [];
 
@@ -52,6 +56,10 @@ headers
 if (!host) {
   console.error('Kong admin host must be specified in config or --host'.red);
   process.exit(1);
+}
+
+if (sslverify) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
 }
 
 if (ignoreConsumers) {
